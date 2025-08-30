@@ -12,7 +12,7 @@ int main(int argc, char **argv)
     char client_hostname[MAXLINE], client_port[MAXLINE]; //클라이언트의 host, port
 
     if (argc != 2){
-        print(stderr, "usage : %s <port>\n, argu[0]");
+        fprintf(stderr, "usage : %s <port>\n", argv[0]);
         exit(0);
     }
 
