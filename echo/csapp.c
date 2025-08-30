@@ -973,7 +973,7 @@ int open_clientfd(char *hostname, char *port) {
             continue; /* Socket failed, try the next */
 
         /* Connect to the server */
-        if (connect(clientfd, p->ai_addr, p->ai_addrlen) != -1) 
+        if (connect(clientfd, p->ai_addr, p->ai_addrlen) != -1) // 여기서 바로 sockaddr_storage로 감 
             break; /* Success */
         if (close(clientfd) < 0) { /* Connect failed, try another */  //line:netp:openclientfd:closefd
             fprintf(stderr, "open_clientfd: close failed: %s\n", strerror(errno));
@@ -1025,6 +1025,9 @@ int open_listenfd(char *port)
                    (const void *)&optval , sizeof(int));
 
         /* Bind the descriptor to the address */
+
+        // 서버 소켓을 로컬 주소/포트에 묶어서 그 포트로 들어오는 syn을 받을 준비
+        // 서버 소켓은 핑프새끼라 나를 받아주기만 원하는 친구임 -> 클라이언트처럼 리드하지않음!
         if (bind(listenfd, p->ai_addr, p->ai_addrlen) == 0)
             break; /* Success */
         if (close(listenfd) < 0) { /* Bind failed, try the next */
