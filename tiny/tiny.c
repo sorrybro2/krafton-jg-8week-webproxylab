@@ -29,15 +29,22 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
+  // 듣기 소켓 디스크럽트 오픈 후
   listenfd = Open_listenfd(argv[1]);
+  // 전형적인 무한 서버 루프를 실행
   while (1) {
     clientlen = sizeof(clientaddr);
+
+    // 반복적으로 연결 요청을 접수
     connfd = Accept(listenfd, (SA *)&clientaddr,
                     &clientlen);  // line:netp:tiny:accept
     Getnameinfo((SA *)&clientaddr, clientlen, hostname, MAXLINE, port, MAXLINE,
                 0);
     printf("Accepted connection from (%s, %s)\n", hostname, port);
+    
+    // 트랜잭션을 수행
     doit(connfd);   // line:netp:tiny:doit
+    // 자신 쪽의 연결 끝을 닫음
     Close(connfd);  // line:netp:tiny:close
   }
 }
