@@ -1,4 +1,4 @@
-clienterror/* $begin tinymain */
+/* $begin tinymain */
 /*
  * tiny.c - A simple, iterative HTTP/1.0 Web server that uses the
  *     GET method to serve static and dynamic content.
@@ -66,7 +66,7 @@ void doit(int fd)
 
   // 디버깅용으로 요청라인을 찍음 
   printf("Request headers : \n");
-  print("%s", buf);
+  printf("%s", buf);
 
   // 공백 기준으로 세 토큰을 뽑아 메서드, URI, HTTP 버전을 각각 넣음!
   sscanf(buf, "%s %s %s", method, uri, version);
@@ -117,7 +117,7 @@ void doit(int fd)
     위와 동문
     403 : 권한 미달로 동적 컨텐츠로 읽을 수 없다!
     */ 
-    if (!(S_ISREG(sbuf.st_mode)) || !(S_IRUSR & sbuf.st_mode)){
+    if (!(S_ISREG(sbuf.st_mode)) || !(S_IXUSR & sbuf.st_mode)){
       clienterror(fd, filename, "403", "Forbidden",
                 "Tiny couldn't run the CGI Program : 권한 때문에 동적 컨텐츠로 읽을 수 없음");
       return;
@@ -151,10 +151,10 @@ void clienterror(int fd, char *cause, char *errnum, char *shortmsg, char *longms
 
   */
   sprintf(body, "<html><title>Tiny Error</title>");
-  sprintf(body, "%s<body bgcolor=""ffffff"">\r\n", body);
-  sprintf(body, "%s%s: %s\r\n", body, errnum, shortmsg);
-  sprintf(body, "%s<p>%s: %s\r\n", body, longmsg, cause);
-  sprintf(body, "%s<hr><em>The Tiny Web server</em>\r\n", body);
+  sprintf(body + strlen(body), "<body bgcolor=\"ffffff\">\r\n");
+  sprintf(body + strlen(body), "%s: %s\r\n", errnum, shortmsg);
+  sprintf(body + strlen(body), "<p>%s: %s\r\n", longmsg, cause);
+  sprintf(body + strlen(body), "<hr><em>The Tiny Web server</em>\r\n");
 
   sprintf(buf, "HTTP/1.0 %s %s\r\n", errnum, shortmsg);
   Rio_writen(fd, buf, strlen(buf));
@@ -239,10 +239,10 @@ void serve_static(int fd, char *filename, int filesize)
   /* 응답 헤더를 클라이언트로 보냄 */
   get_filetype(filename, filetype);
   sprintf(buf, "HTTP/1.0 200 OK\r\n");
-  sprintf(buf, "%sServer: Tiny Web Server\r\n", buf);
-  sprintf(buf, "%sConnection: close\r\n", buf);
-  sprintf(buf, "%sContent-length: %d\r\n", buf, filesize);
-  sprintf(buf, "%sContent-type: %s\r\n\r\n", buf, filetype);
+  sprintf(buf + strlen(buf), "Server: Tiny Web Server\r\n");
+  sprintf(buf + strlen(buf), "Connection: close\r\n");
+  sprintf(buf + strlen(buf), "Content-length: %d\r\n", filesize);
+  sprintf(buf + strlen(buf), "Content-type: %s\r\n\r\n", filetype);
   Rio_writen(fd, buf, strlen(buf));
   printf("Response headers:\n");
   printf("%s", buf);
