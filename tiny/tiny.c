@@ -5,6 +5,12 @@
  *
  * Updated 11/2019 droh
  *   - Fixed sprintf() aliasing issue in serve_static(), and clienterror().
+ * 
+ * 빌드 -> 서버실행 -> 테스트
+ * gcc -Wall -O2 cgi-bin/adder.c -o cgi-bin/adder && chmod 755 cgi-bin/adder
+ * gcc -O2 -Wall -Wextra tiny.c csapp.c -o tiny -lpthread
+ * ./tiny 8000 & sleep 0.5 && curl -v http://127.0.0.1:8000/home.html && curl -v 'http://127.0.0.1:8000/cgi-bin/adder?x=13&y=29'
+ *
  */
 #include "csapp.h"
 
@@ -238,14 +244,16 @@ void serve_static(int fd, char *filename, int filesize)
 
   /* 응답 헤더를 클라이언트로 보냄 */
   get_filetype(filename, filetype);
-  sprintf(buf, "HTTP/1.0 200 OK\r\n");
-  sprintf(buf + strlen(buf), "Server: Tiny Web Server\r\n");
-  sprintf(buf + strlen(buf), "Connection: close\r\n");
-  sprintf(buf + strlen(buf), "Content-length: %d\r\n", filesize);
-  sprintf(buf + strlen(buf), "Content-type: %s\r\n\r\n", filetype);
-  Rio_writen(fd, buf, strlen(buf));
-  printf("Response headers:\n");
-  printf("%s", buf);
+
+  int n = 0;
+  n += snprintf(buf + n, sizeof(buf) - n, "HTTP/1.0 200 OK\r\n");
+  n += snprintf(buf + n, sizeof(buf) - n, "Server: Tiny Web Server\r\n");
+  n += snprintf(buf + n, sizeof(buf) - n, "Connection: close\r\n");
+  n += snprintf(buf + n, sizeof(buf) - n, "Content-length: %d\r\n", filesize);
+  n += snprintf(buf + n, sizeof(buf) - n, "Content-type: %s\r\n\r\n", filetype);
+
+  Rio_writen(fd, buf, n);
+  printf("Response headers:\n%s", buf);
 
   /*
     응답 바디를 클라이언트로 보냄
@@ -285,6 +293,10 @@ void get_filetype(char *filename, char *filetype)
     strcpy(filetype, "image/png");
   else if (strstr(filename, ".jpg"))
     strcpy(filetype, "image/jpeg");
+  else if (strstr(filename, ".mpg") || strstr(filename, ".mpeg"))
+     strcpy(filetype, "video/mpeg");
+  else if (strstr(filename, ".mp4"))
+    strcpy(filetype, "video/mp4");
   else
     strcpy(filetype, "text/plain");
 }
